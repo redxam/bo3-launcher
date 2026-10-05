@@ -1,0 +1,64 @@
+name: BO3Launcher
+options:
+  bundleIdPrefix: com.redxam
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    DEVELOPMENT_TEAM: J497DX6ZF8
+  configs:
+    Debug:
+      CODE_SIGN_STYLE: Automatic
+      CODE_SIGN_IDENTITY: Apple Development
+    Release:
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGN_IDENTITY: Developer ID Application
+      ENABLE_HARDENED_RUNTIME: true
+
+targets:
+  BO3Launcher:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+      - path: Resources
+        buildPhase: resources
+    postBuildScripts:
+      - script: |
+          mkdir -p "${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Resources"
+          cp -f "${PROJECT_DIR}/Resources/BO3MacFix.tar.gz" "${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Resources/BO3MacFix.tar.gz"
+          cp -f "${PROJECT_DIR}/vendor/SteamRedirector.m" "${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Resources/SteamRedirector.m"
+          cp -f "${PROJECT_DIR}/vendor/DualSenseRumble.dylib" "${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Resources/DualSenseRumble.dylib"
+        name: Bundle BO3MacFix
+        basedOnDependencyAnalysis: false
+      - script: |
+          # Valve's libsteam_api.dylib is x86_64 only, so this helper must be too.
+          # It lives in MacOS/ and gets signed, otherwise notarization rejects it.
+          SRC="${PROJECT_DIR}/vendor/steam-unsub"
+          clang -arch x86_64 -O2 -Wall -o "$SRC/steam-unsub" "$SRC/steam-unsub.c"
+          DEST="${BUILT_PRODUCTS_DIR}/${EXECUTABLE_FOLDER_PATH}/steam-unsub"
+          cp -f "$SRC/steam-unsub" "$DEST"
+          if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ]; then
+            codesign --force --timestamp=none \
+              --sign "${EXPANDED_CODE_SIGN_IDENTITY}" "$DEST"
+          fi
+        name: Build steam-unsub helper
+        basedOnDependencyAnalysis: false
+    entitlements:
+      path: Resources/BO3Launcher.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.redxam.bo3launcher
+        INFOPLIST_FILE: Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        PRODUCT_NAME: BO3 Launcher
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: 1
+      configs:
+        Release:
+          PROVISIONING_PROFILE_SPECIFIER: ""
