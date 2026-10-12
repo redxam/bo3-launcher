@@ -1,11 +1,11 @@
 {
   "app": "experimental/maxawad/gaming/bo3-launcher",
-  "version": "1.2.3",
-  "build": 6,
+  "version": "1.2.4",
+  "build": 7,
   "scheme": "semver",
   "date": "2026-10-12",
-  "commit": "ec79dd0eb",
-  "previousVersion": "1.2.2",
-  "previousCommit": "6f5be67e20fde81391157ecf97795e6b6b64439d",
-  "updatedAt": "2026-10-12T13:15:00-05:00"
+  "commit": "9ad286869",
+  "previousVersion": "1.2.3",
+  "previousCommit": "9ad286869",
+  "updatedAt": "2026-10-12T13:20:00-05:00"
 }

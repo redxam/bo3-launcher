@@ -26,6 +26,12 @@ struct GameLauncher {
             guard MacFixInstaller.isInstalled else { return }
         }
 
+        // Every fix lives in the injected libraries rather than the launcher,
+        // and both are copied into the game folder, so an update only reaches
+        // the player once those copies are refreshed.
+        MacFixInstaller.syncMacFixDylib()
+        MacFixInstaller.syncRumbleDylib()
+
         launchWithFix()
     }
 

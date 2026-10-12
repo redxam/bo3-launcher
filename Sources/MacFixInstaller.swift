@@ -54,7 +54,7 @@ struct MacFixInstaller {
 
             if process.terminationStatus == 0 && isInstalled {
                 removeQuarantine()
-                installRumbleDylib()
+                syncRumbleDylib()
                 showAlert(
                     title: "BO3MacFix Installed",
                     message: "Successfully installed BO3MacFix to your game folder.\n\nMake sure Wine is installed:\nbrew install --cask --no-quarantine wine-stable",
@@ -68,12 +68,76 @@ struct MacFixInstaller {
         }
     }
 
-    private static func installRumbleDylib() {
+    /// Refreshes the patch itself, for the same reason as `syncRumbleDylib`.
+    ///
+    /// Only `BO3MacFix.dylib` is replaced. The tarball also carries the
+    /// installer and `AppBundleExe`, but re-extracting the whole archive over a
+    /// live install risks the Wine prefix sitting in the same directory.
+    static func syncMacFixDylib() {
+        guard let tar = Bundle.main.path(forResource: "BO3MacFix", ofType: "tar.gz") else { return }
+        let dest = Paths.macFixDir + "/BO3MacFix.dylib"
+        let fm = FileManager.default
+
+        // Staged beside the destination, not in NSTemporaryDirectory.
+        // `replaceItemAt` fails across volumes and the game usually lives on a
+        // separate disk from the system drive.
+        let scratch = Paths.macFixDir + "/.bo3macfix-sync-\(UUID().uuidString)"
+        try? fm.createDirectory(atPath: scratch, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(atPath: scratch) }
+
+        let untar = Process()
+        untar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+        untar.arguments = ["-xzf", tar, "-C", scratch, "BO3MacFix/BO3MacFix.dylib"]
+        guard (try? untar.run()) != nil else { return }
+        untar.waitUntilExit()
+        guard untar.terminationStatus == 0 else { return }
+
+        let fresh = scratch + "/BO3MacFix/BO3MacFix.dylib"
+        guard let new = fm.contents(atPath: fresh) else { return }
+        if let current = fm.contents(atPath: dest), current == new { return }
+
+        guard (try? fm.replaceItemAt(URL(fileURLWithPath: dest),
+                                     withItemAt: URL(fileURLWithPath: fresh))) != nil else { return }
+        clearQuarantine(dest)
+    }
+
+    /// Copies the bundled shim into the game folder whenever the two differ.
+    ///
+    /// Call this before every launch, not just on install. `install()` is gated
+    /// behind `!isInstalled`, so a player who already had BO3MacFix kept their
+    /// original shim through every launcher update and never received a fix
+    /// that lived in the shim rather than the launcher.
+    static func syncRumbleDylib() {
         guard let src = Bundle.main.path(forResource: "DualSenseRumble", ofType: "dylib") else { return }
         let dest = Paths.macFixDir + "/DualSenseRumble.dylib"
         let fm = FileManager.default
-        try? fm.removeItem(atPath: dest)
-        try? fm.copyItem(atPath: src, toPath: dest)
+
+        guard let fresh = fm.contents(atPath: src) else { return }
+        if let current = fm.contents(atPath: dest), current == fresh { return }
+
+        // Staged then moved. Overwriting in place has handed dyld a partially
+        // written file, which it rejects as a signature not covering the whole
+        // file and the game refuses to start.
+        let staged = Paths.macFixDir + "/.DualSenseRumble.dylib.new"
+        try? fm.removeItem(atPath: staged)
+        guard (try? fm.copyItem(atPath: src, toPath: staged)) != nil else { return }
+        guard (try? fm.replaceItemAt(URL(fileURLWithPath: dest),
+                                     withItemAt: URL(fileURLWithPath: staged))) != nil else {
+            try? fm.removeItem(atPath: staged)
+            return
+        }
+
+        clearQuarantine(dest)
+    }
+
+    /// The copy inherits the app bundle's quarantine flag, and dyld will not
+    /// inject a quarantined library into the game.
+    private static func clearQuarantine(_ path: String) {
+        let xattr = Process()
+        xattr.executableURL = URL(fileURLWithPath: "/usr/bin/xattr")
+        xattr.arguments = ["-c", path]
+        try? xattr.run()
+        xattr.waitUntilExit()
     }
 
     private static func removeQuarantine() {

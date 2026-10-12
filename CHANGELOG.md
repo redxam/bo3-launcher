@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.4 (build 7) - 2026-10-12
+
+- The injected libraries are refreshed in the game folder on every launch.
+  `installRumbleDylib` only ran inside `install()`, which is gated behind
+  `!isInstalled`, so anyone who already had BO3MacFix kept their original
+  `DualSenseRumble.dylib` and `BO3MacFix.dylib` through every launcher update.
+  Each fix this project ships lives in those libraries, not in the launcher, so
+  updating the app delivered nothing.
+- Both syncs stage beside the destination rather than in `NSTemporaryDirectory`.
+  `FileManager.replaceItemAt` fails across volumes, and the game normally sits
+  on a different disk from the system drive.
+
+## 1.2.4 (build 7) - 2026-10-12
+
+- The injected libraries are refreshed from the app bundle on every launch.
+  `installRumbleDylib` only ran inside `install()`, which is gated behind
+  `!isInstalled`, so anyone who already had BO3MacFix kept their original
+  `DualSenseRumble.dylib` and `BO3MacFix.dylib` through every launcher update
+  and never received a fix that lived in the shim rather than the launcher.
+- Both copies are staged inside the game folder before being swapped in.
+  `replaceItemAt` fails across volumes, and the game normally sits on a
+  different disk from the system drive.
+
 ## 1.2.3 (build 6) - 2026-10-12
 
 - The launcher reports its real version. `GameLauncher.gameVersion` and the
