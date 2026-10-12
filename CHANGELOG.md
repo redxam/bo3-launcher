@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.3 (build 6) - 2026-10-12
+
+- The launcher reports its real version. `GameLauncher.gameVersion` and the
+  What's New header were hardcoded `v1.1.0`, so every build since said 1.1.0
+  no matter what shipped. Both read `CFBundleShortVersionString` now.
+
 ## 1.2.2 (build 5) - 2026-10-12
 
 - Game audio follows the Mac's default output device again. The game pinned its

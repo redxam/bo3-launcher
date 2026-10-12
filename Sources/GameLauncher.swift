@@ -274,7 +274,9 @@ struct GameLauncher {
         alert.runModal()
     }
 
+    /// Read from the bundle, never written out as a literal. A hardcoded string
+    /// here went stale and the launcher reported v1.1.0 for three releases.
     static var gameVersion: String {
-        "v1.1.0"
+        "v" + (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0")
     }
 }

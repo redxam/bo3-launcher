@@ -117,16 +117,16 @@ struct WhatsNewView: View {
                         Image(systemName: "sparkles")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Theme.orange)
-                        Text("v1.1.0")
+                        Text(GameLauncher.gameVersion)
                             .font(.system(size: 14, weight: .heavy))
                             .foregroundColor(Theme.textPrimary)
                     }
 
-                    changelogItem("Non-Steam installation — download and play without Steam")
-                    changelogItem("Download manager with pause & resume")
-                    changelogItem("Concurrent downloads (up to 3x speed)")
-                    changelogItem("Choose install location (defaults to ~/Documents)")
-                    changelogItem("Download speed indicator")
+                    changelogItem("Game audio follows your Mac's output device, switch to headphones mid-game")
+                    changelogItem("PlayStation button prompts and controller diagrams")
+                    changelogItem("Rumble for up to four DualSense controllers")
+                    changelogItem("Loading screen over the black gap at startup")
+                    changelogItem("Non-Steam installation, download and play without Steam")
 
                     Divider()
                         .background(Color.white.opacity(0.1))
