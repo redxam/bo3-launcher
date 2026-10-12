@@ -63,8 +63,8 @@ targets:
         INFOPLIST_FILE: Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         PRODUCT_NAME: BO3 Launcher
-        MARKETING_VERSION: "1.2.1"
-        CURRENT_PROJECT_VERSION: 4
+        MARKETING_VERSION: "1.2.2"
+        CURRENT_PROJECT_VERSION: 5
       configs:
         Release:
           PROVISIONING_PROFILE_SPECIFIER: ""

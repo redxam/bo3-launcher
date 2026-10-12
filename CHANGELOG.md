@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2 (build 5) - 2026-10-12
+
+- Game audio follows the Mac's default output device again. The game pinned its
+  AudioQueues to whatever device was default at launch; the shim now swallows
+  that pin, and an unpinned queue tracks the default on its own. Re-pointing a
+  live queue is not an alternative, see `AGENT.MD`.
+
 ## 1.2.1 (build 4) - 2026-10-12
 
 - The game window is titled "Call of Duty: Black Ops III on Mac" instead of

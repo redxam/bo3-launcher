@@ -10,6 +10,8 @@
 // open HID handle and report sequence counter, so split screen rumbles the
 // right pad.
 
+#include <AudioToolbox/AudioToolbox.h>
+#include <CoreAudio/CoreAudio.h>
 #include <ForceFeedback/ForceFeedback.h>
 #include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDLib.h>
@@ -944,6 +946,45 @@ static HRESULT ds_FFEffectGetEffectStatus(FFEffectObjectReference fxref, FFEffec
     return FFEffectGetEffectStatus(fxref, status);
 }
 
+// ------------------------------------------------- audio follows the default
+
+// Right after creating each output queue the game pins it to the device that
+// happened to be default at the time, with
+// AudioQueueSetProperty(kAudioQueueProperty_CurrentDevice). That pin is why
+// changing the Mac's output mid-game left the game playing into the old
+// device. An unpinned AudioQueue follows the system default on its own.
+//
+// Re-pointing the queue afterwards is not an alternative: a running queue
+// rejects the property with kAudioQueueErr_InvalidRunState (-66678), and
+// stopping it to get the change accepted ends the stream. The game never
+// enqueues again and the result is silence on the correct device.
+
+static int g_audio_follow = 1;
+
+static OSStatus ds_AudioQueueSetProperty(AudioQueueRef q, AudioQueuePropertyID id,
+                                         const void *data, UInt32 size) {
+    if (id == kAudioQueueProperty_CurrentDevice && g_audio_follow) {
+        char uid[256] = "?";
+        if (data && size >= sizeof(CFStringRef)) {
+            CFStringRef s = *(CFStringRef *)data;
+            if (s) CFStringGetCString(s, uid, sizeof(uid), kCFStringEncodingUTF8);
+        }
+        ds_log("audio: not pinning queue %p to %s, following the system default",
+               (void *)q, uid);
+        return noErr;
+    }
+    return AudioQueueSetProperty(q, id, data, size);
+}
+
+DYLD_INTERPOSE(ds_AudioQueueSetProperty, AudioQueueSetProperty)
+
+static void watch_default_output_device(void) {
+    if (getenv("DS_NO_AUDIO_FOLLOW")) {
+        g_audio_follow = 0;
+        ds_log("audio: DS_NO_AUDIO_FOLLOW set, output stays on the launch device");
+    }
+}
+
 DYLD_INTERPOSE(ds_IOHIDManagerRegisterDeviceMatchingCallback, IOHIDManagerRegisterDeviceMatchingCallback)
 DYLD_INTERPOSE(ds_FFIsForceFeedback, FFIsForceFeedback)
 DYLD_INTERPOSE(ds_FFCreateDevice, FFCreateDevice)
@@ -964,6 +1005,7 @@ static void ds_init(void) {
     ds_log("--- dualsense rumble shim loaded (pid %d) ---", getpid());
     patch_playstation_glyphs();
     install_menu_glyph_hook();
+    watch_default_output_device();
     if (!getenv("DS_NO_SELFTEST")) {
         pthread_t t;
         pthread_create(&t, NULL, selftest_thread, NULL);

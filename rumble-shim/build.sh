@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-FRAMEWORKS="-framework ForceFeedback -framework IOKit -framework CoreFoundation -lz"
+FRAMEWORKS="-framework AudioToolbox -framework CoreAudio -framework ForceFeedback -framework IOKit -framework CoreFoundation -lz"
 
 echo "building shim (x86_64)..."
 clang -arch x86_64 -dynamiclib -O2 -Wall \
@@ -31,8 +31,12 @@ file rumbletest
 if [ "${1:-}" = "install" ]; then
     DEST="/Volumes/Games/SteamLibrary/steamapps/common/Call of Duty Black Ops III/BO3MacFix"
     if [ -d "$DEST" ]; then
-        cp libdualsense_rumble.dylib "$DEST/DualSenseRumble.dylib"
-        xattr -d com.apple.quarantine "$DEST/DualSenseRumble.dylib" 2>/dev/null || true
+        # Staged then moved: overwriting in place has handed dyld a half
+        # written file, which it reports as a code signature that does not
+        # cover the whole file.
+        cp libdualsense_rumble.dylib "$DEST/.DualSenseRumble.dylib.new"
+        xattr -c "$DEST/.DualSenseRumble.dylib.new" 2>/dev/null || true
+        mv -f "$DEST/.DualSenseRumble.dylib.new" "$DEST/DualSenseRumble.dylib"
         echo "installed -> $DEST/DualSenseRumble.dylib"
     else
         echo "game not mounted, skipped install" >&2
