@@ -147,7 +147,7 @@ install_hook_name(someLoggingFunction, void, int bla, int bla2, char *str, int b
 // Hooks some early window creation function to set the window title to ours
 install_hook_name(someWindowCreationFunction, bool, void *r3, int r4) {
     bool r = orig_someWindowCreationFunction(r3, r4);
-    set_window_title("Call of Duty: Black Ops III (with BO3MacFix)");
+    set_window_title("Call of Duty: Black Ops III on Mac");
     return r;
 }
 */
@@ -159,7 +159,7 @@ install_hook_name(SDL_SetWindowTitle, void, void *sdlWindow, const char *title)
     // verify the window title we're setting is the main game window
     if (strcmp("Call of Duty: Black Ops III", title) == 0)
     {
-        title = "Call of Duty: Black Ops III (with BO3MacFix)";
+        title = "Call of Duty: Black Ops III on Mac";
         set_window_title(title);
         if (added_menu_bar == false) {
             //add_menu_bar();
