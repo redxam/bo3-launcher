@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1 (build 4) - 2026-10-12
+
+- The game window is titled "Call of Duty: Black Ops III on Mac" instead of
+  "(with BO3MacFix)". The string lives in the forked patch, so this needs a
+  payload rebuild, not just a launcher rebuild.
+
 ## 1.2.0 (build 3) - 2026-10-12
 
 Published to `bo3.redxam.com`. Archive copy at `/releases/BO3Launcher-1.2.0.zip`.
