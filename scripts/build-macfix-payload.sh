@@ -44,6 +44,17 @@ rm -rf "$STAGING/BO3MacFix/pfx"
 chmod 0644 "$STAGING/BO3MacFix/BO3MacFix.dylib"
 chmod 0755 "$STAGING/BO3MacFix/Install_BO3MacFix" "$STAGING/BO3MacFix/AppBundleExe"
 
+# Notarization unpacks this tarball inside the app and rejects every unsigned
+# binary it finds, upstream's included. Hardened runtime applies only to these
+# processes; the game is launched separately and stays unhardened, so the
+# DYLD_INSERT_LIBRARIES injection still works.
+echo "==> Signing payload binaries"
+SIGN_ID="Developer ID Application: Max Awad (J497DX6ZF8)"
+for binary in BO3MacFix.dylib Install_BO3MacFix AppBundleExe; do
+    codesign --force --timestamp --options runtime \
+        --sign "$SIGN_ID" "$STAGING/BO3MacFix/$binary"
+done
+
 echo "==> Writing $OUTPUT"
 mkdir -p "$ROOT/Resources"
 # No AppleDouble files: they break extraction onto non-APFS drives.

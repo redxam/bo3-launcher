@@ -62,6 +62,7 @@ struct GameLauncher {
 
         let pid = spawnDetached(exe: gameExe, dir: gameDir, env: env)
         if pid > 0 {
+            DispatchQueue.main.async { LoadingOverlay.shared.show() }
             monitorPid(pid)
         } else {
             ControllerManager.shared.resume()
@@ -83,6 +84,7 @@ struct GameLauncher {
 
         let pid = spawnDetached(exe: cliPath, dir: cliDir, env: env, args: ["9"])
         if pid > 0 {
+            DispatchQueue.main.async { LoadingOverlay.shared.show() }
             monitorPid(pid)
         } else {
             ControllerManager.shared.resume()
@@ -123,6 +125,7 @@ struct GameLauncher {
             var status: Int32 = 0
             waitpid(pid, &status, 0)
             DispatchQueue.main.async {
+                LoadingOverlay.shared.dismiss()
                 ControllerManager.shared.resume()
             }
         }

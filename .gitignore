@@ -12,3 +12,7 @@ vendor/BO3MacFix-src/*.dSYM/
 
 # Compiled by the Xcode build phase
 vendor/steam-unsub/steam-unsub
+
+# Built by rumble-shim/build.sh during the Xcode build
+rumble-shim/libdualsense_rumble.dylib
+rumble-shim/rumbletest

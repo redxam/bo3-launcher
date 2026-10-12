@@ -36,7 +36,14 @@ This launcher wraps that in something you can hand to a friend.
   reading `libraryfolders.vdf`, not by assuming a path under your home folder.
 - **Skips the intro videos.** Straight to the main menu.
 - **Steam integration.** Optionally makes Steam's Play button open the launcher.
-- **Controller support**, including DualSense rumble.
+- **DualSense rumble**, for up to four controllers at once. The Mac port's
+  ForceFeedback path does nothing on a DualSense, so the launcher injects a shim
+  that turns the game's effects into Bluetooth output reports.
+- **PlayStation button prompts and icons**, everywhere the game would otherwise
+  draw Xbox ones: the HUD, the keybind list, the menu footers, and the
+  controller diagram on the layout screens.
+- **A loading screen** over the black gap between launching and the game's first
+  window, which can run close to a minute.
 
 ## Requirements
 
@@ -68,6 +75,12 @@ Requires Xcode and [xcodegen](https://github.com/yonaskolb/XcodeGen).
 xcodegen generate
 ./build-and-run.sh
 ```
+
+`rumble-shim/dualsense_rumble.c` is compiled by a build phase and bundled into
+the app, which installs it next to the game. It is **x86_64** because the game
+is, and it carries both the rumble bridge and the PlayStation glyph swap.
+`rumble-shim/build.sh` also builds `rumbletest`, a native binary that pulses a
+connected DualSense so you can check the Bluetooth path without the game.
 
 `vendor/steam-unsub/steam-unsub.c` is compiled as a separate **x86_64** helper
 by a build phase. It has to be: Valve's `libsteam_api.dylib` shipped with the
